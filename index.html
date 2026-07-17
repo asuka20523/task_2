@@ -418,6 +418,12 @@
       <label>成果・数字など（任意）</label>
       <input type="text" id="fImpact" placeholder="例）CVR 1.2%→1.8%、登録工数を30%削減">
     </div>
+    <div class="field">
+      <label class="toggle-row" style="margin-bottom:0;">
+        <input type="checkbox" id="fExclude">
+        この記録は実績（集計・評価用）に反映させない
+      </label>
+    </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="cancelBtn">キャンセル</button>
       <button class="btn-primary" id="saveBtn">保存する</button>
@@ -616,6 +622,7 @@ function buildEntryRow(e, opts){
     <div class="entry-row-top">
       <span class="tag" style="background:${cat.color}">${cat.label}</span>
       <span class="tag outline" style="--c:${st.color}">${st.label}</span>
+      ${e.excludeFromSummary ? `<span class="tag outline" style="--c:var(--other)">対象外</span>` : ''}
       <span class="entry-date">${dateLabel}</span>
     </div>
     <div class="entry-title">${escapeHtml(e.title)}</div>
@@ -748,7 +755,7 @@ function renderSummary(){
   const range = currentRange();
   const fromStr = dateOnly(range.from), toStr = dateOnly(range.to);
 
-  const inRangeAll = entries.filter(e => e.date >= fromStr && e.date <= toStr)
+  const inRangeAll = entries.filter(e => e.date >= fromStr && e.date <= toStr && !e.excludeFromSummary)
     .sort((a,b) => a.date.localeCompare(b.date));
   const inRange = summaryDoneOnly ? inRangeAll.filter(e => (e.status || 'done') === 'done') : inRangeAll;
 
@@ -823,7 +830,7 @@ function bindSummaryEvents(){
 function copySummaryText(btn){
   const range = currentRange();
   const fromStr = dateOnly(range.from), toStr = dateOnly(range.to);
-  const inRangeAll = entries.filter(e => e.date >= fromStr && e.date <= toStr)
+  const inRangeAll = entries.filter(e => e.date >= fromStr && e.date <= toStr && !e.excludeFromSummary)
     .sort((a,b) => a.date.localeCompare(b.date));
   const inRange = summaryDoneOnly ? inRangeAll.filter(e => (e.status || 'done') === 'done') : inRangeAll;
 
@@ -891,6 +898,7 @@ function openModal(id){
     $('#fEventStart').value = e.eventStart || '';
     $('#fEventEnd').value = e.eventEnd || '';
     $('#fParent').value = e.parentId || '';
+    $('#fExclude').checked = !!e.excludeFromSummary;
     selectedCat = e.category;
     selectedStatus = e.status || 'done';
     $('#deleteBtn').style.display = 'block';
@@ -905,6 +913,7 @@ function openModal(id){
     $('#fEventStart').value = '';
     $('#fEventEnd').value = '';
     $('#fParent').value = '';
+    $('#fExclude').checked = false;
     selectedCat = CATEGORIES[0].id;
     selectedStatus = 'done';
     $('#deleteBtn').style.display = 'none';
@@ -939,15 +948,16 @@ function saveEntry(){
   const eventStart = $('#fEventStart').value || '';
   const eventEnd = $('#fEventEnd').value || '';
   const parentId = $('#fParent').value || null;
+  const excludeFromSummary = $('#fExclude').checked;
   const status = selectedStatus;
 
   if (editingId){
     const e = entries.find(x => x.id === editingId);
-    Object.assign(e, { date, category: selectedCat, title, detail, impact, startDate, dueDate, eventStart, eventEnd, parentId, status });
+    Object.assign(e, { date, category: selectedCat, title, detail, impact, startDate, dueDate, eventStart, eventEnd, parentId, status, excludeFromSummary });
   } else {
     entries.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-      date, category: selectedCat, title, detail, impact, startDate, dueDate, eventStart, eventEnd, parentId, status
+      date, category: selectedCat, title, detail, impact, startDate, dueDate, eventStart, eventEnd, parentId, status, excludeFromSummary
     });
   }
   save();

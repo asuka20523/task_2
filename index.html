@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>実績ログ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F8;
+    --surface:#FFFFFF;
+    --border:#E2E5EA;
+    --border-strong:#CBD2D9;
+    --text:#1F2933;
+    --text-soft:#6B7785;
+    --text-faint:#9AA5B1;
+    --accent:#2F6FED;
+    --accent-soft:#EAF1FE;
+    --danger:#D64545;
+    --danger-soft:#FBEAEA;
+    --done-soft:#E7F6ED;
+    --rakuten:#C62828;
+    --amazon:#E07B00;
+    --yahoo:#7C4DFF;
+    --tiktok:#E91E63;
+    --other:#66788A;
+    --status-todo:#94A3B8;
+    --status-doing:#2F6FED;
+    --status-hold:#E07B00;
+    --status-done:#2E9E5B;
+    --radius:8px;
+    --radius-sm:6px;
+  }
+  html{
+    scrollbar-gutter: stable;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans JP', sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:24px 16px 40px;}
+  @media (min-width:1000px){
+    .wrap{max-width:1040px; padding:32px 24px 48px;}
+  }
+
+  /* Header */
+  header{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:14px; margin-bottom:18px; flex-wrap:wrap;
+  }
+  .title-block h1{
+    font-size:20px; font-weight:800; margin:0 0 2px; letter-spacing:.01em;
+  }
+  .title-block p{ margin:0; color:var(--text-soft); font-size:12.5px; }
+  .add-btn{
+    background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:9px 16px; font-size:13.5px; font-weight:700; cursor:pointer;
+    font-family:'Noto Sans JP', sans-serif;
+    white-space:nowrap;
+  }
+  .add-btn:hover{ background:#2359CB; }
+  .header-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .backup-btn{
+    background:var(--surface); color:var(--text-soft); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:9px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans JP', sans-serif;
+    white-space:nowrap;
+  }
+  .backup-btn:hover{ border-color:var(--border-strong); color:var(--text); }
+  .save-toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(0);
+    background:var(--text); color:#fff; font-size:13px; font-weight:600;
+    padding:10px 18px; border-radius:999px; z-index:100; opacity:0; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .save-toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  /* Tabs (segmented control) */
+  .tabs{
+    display:inline-flex; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:3px; margin-bottom:16px; gap:2px;
+  }
+  .tab{
+    background:none; border:none; font-family:'Noto Sans JP', sans-serif;
+    font-size:13px; font-weight:700; color:var(--text-soft);
+    padding:7px 16px; cursor:pointer; border-radius:6px;
+  }
+  .tab.active{ background:var(--accent); color:#fff; }
+
+  /* Tags / chips (shared) */
+  .tag{
+    display:inline-flex; align-items:center; font-size:11px; font-weight:700;
+    padding:3px 8px; border-radius:4px; color:#fff; line-height:1.4; white-space:nowrap;
+  }
+  .tag.outline{
+    color:var(--c); background:color-mix(in srgb, var(--c) 10%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--c) 35%, var(--border));
+  }
+
+  .chip-picker{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    border:1px solid var(--border); background:var(--surface); border-radius:var(--radius-sm);
+    padding:6px 12px; cursor:pointer; font-size:12.5px; font-weight:700; color:var(--text-soft);
+    font-family:'Noto Sans JP', sans-serif;
+  }
+  .chip .dot{ width:7px; height:7px; border-radius:2px; background:var(--c); flex-shrink:0; }
+  .chip.selected{ background:var(--c); border-color:var(--c); color:#fff; }
+  .chip.selected .dot{ background:#fff; }
+
+  /* Filters */
+  .filters{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+  .filter-label{ font-size:11.5px; color:var(--text-faint); font-weight:700; margin-right:2px; }
+  .filter-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    border:1px solid var(--border); background:var(--surface); border-radius:var(--radius-sm);
+    padding:5px 10px; font-size:12px; font-weight:700; color:var(--text-soft);
+    cursor:pointer; font-family:'Noto Sans JP', sans-serif;
+  }
+  .filter-chip .dot{ width:7px; height:7px; border-radius:2px; background:var(--c, var(--text-faint)); }
+  .filter-chip.on{
+    border-color:var(--c, var(--accent)); color:var(--c, var(--accent));
+    background:color-mix(in srgb, var(--c, var(--accent)) 8%, var(--surface));
+  }
+  .filter-row{ margin-bottom:14px; }
+
+  /* Timeline layout: list + detail panel */
+  .timeline-layout{ display:flex; gap:0; align-items:flex-start; }
+  .timeline-list{ flex:1; min-width:0; }
+  .timeline-detail{ display:none; }
+  @media (min-width:1000px){
+    .timeline-layout{ gap:24px; }
+    .timeline-list{ flex:1 1 0; max-width:52%; }
+    .timeline-detail{
+      display:block; flex:1 1 0; position:sticky; top:20px;
+    }
+  }
+  .timeline-detail-inner{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px;
+  }
+  .detail-empty{
+    color:var(--text-faint); font-size:13px; text-align:center; padding:60px 20px; line-height:1.7;
+  }
+  .detail-header{ display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+  .detail-title{ font-size:18px; font-weight:800; margin:2px 0 16px; line-height:1.5; }
+  .detail-meta-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .detail-meta-list .row{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-soft); }
+  .detail-meta-list .row span:last-child{ font-weight:600; color:var(--text); }
+  .detail-meta-list .row .overdue{ color:var(--danger); }
+  .detail-detail-text{
+    font-size:13.5px; color:var(--text); line-height:1.75; white-space:pre-wrap;
+    margin-bottom:14px; padding-top:14px; border-top:1px solid var(--border);
+  }
+  .detail-actions{ display:flex; gap:10px; margin-top:18px; }
+  .detail-actions button{ flex:1; }
+  .detail-parent-link{
+    font-size:12px; color:var(--text-soft); margin-bottom:12px; cursor:pointer; font-weight:600;
+  }
+  .detail-parent-link:hover{ color:var(--accent); text-decoration:underline; }
+  .detail-children{ margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
+  .detail-children h4{ font-size:12px; font-weight:700; color:var(--text-soft); margin:0 0 8px; }
+  .detail-children ul{ list-style:none; margin:0; padding:0; }
+  .detail-children li{
+    font-size:13px; padding:6px 0; cursor:pointer; color:var(--accent); font-weight:600;
+    border-top:1px dashed var(--border);
+  }
+  .detail-children li:first-child{ border-top:none; }
+  .detail-children li:hover{ text-decoration:underline; }
+  .btn-danger{
+    background:var(--surface); color:var(--danger); border:1px solid var(--danger);
+    border-radius:var(--radius-sm); padding:11px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:'Noto Sans JP', sans-serif;
+  }
+  .btn-danger:hover{ background:var(--danger-soft); }
+
+  /* Task cards (each top-level task = one card, with gap between cards) */
+  .month-heading{
+    font-size:12px; font-weight:700; color:var(--text-faint);
+    margin:22px 2px 10px; letter-spacing:.04em;
+  }
+  .month-heading:first-of-type{ margin-top:6px; }
+  .task-card{
+    border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; background:var(--surface); margin-bottom:14px;
+  }
+  .task-card:last-child{ margin-bottom:0; }
+  .entry-row{
+    padding:11px 12px; border-bottom:1px solid var(--border); cursor:pointer;
+    position:relative; overflow:hidden;
+  }
+  .entry-row:last-child{ border-bottom:none; }
+  .entry-row:hover{ background:#FAFBFC; }
+  .entry-row.selected{ background:var(--accent-soft); }
+  .entry-row.has-children{ padding-right:40px; }
+  .branch-toggle-btn{
+    position:absolute; top:50%; right:14px; transform:translateY(-50%);
+    background:none; border:none; padding:0; cursor:pointer; line-height:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .arrow-v{
+    display:block; width:15px; height:15px; box-sizing:border-box;
+    border-style:solid; border-color:#9AA5B1;
+    border-width:0 3px 3px 0;
+    transform:rotate(45deg);
+  }
+  .branch-toggle-btn.collapsed .arrow-v{ transform:rotate(-45deg); border-color:#B8C0C9; }
+  .branch-toggle-btn:hover .arrow-v{ border-color:#7B8794; }
+  .entry-date{ margin-left:auto; font-size:11.5px; color:var(--text-faint); font-weight:600; }
+  .children-wrap{
+    margin-left:22px; padding-left:16px; border-left:2px solid var(--border-strong);
+    background:#FBFBFC;
+  }
+  .entry-row.is-child{ padding-left:14px; }
+  .entry-row-top{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .entry-date{ font-size:11.5px; color:var(--text-faint); font-weight:600; }
+  .entry-title{ font-size:14px; font-weight:600; color:var(--text); margin:6px 0 0; }
+  .entry-detail{ font-size:12.5px; color:var(--text-soft); margin-top:4px; line-height:1.6; white-space:pre-wrap; }
+  .entry-meta{ display:flex; gap:12px; flex-wrap:wrap; margin-top:6px; }
+  .entry-meta span{ font-size:11.5px; color:var(--text-faint); font-weight:600; }
+  .overdue{ color:var(--danger) !important; font-weight:700; }
+  .entry-impact{
+    display:inline-block; margin-top:6px; font-size:11.5px; font-weight:700;
+    color:var(--accent); background:var(--accent-soft); padding:3px 8px; border-radius:4px;
+  }
+  .entry-actions{ display:flex; gap:14px; margin-top:8px; }
+  .entry-actions button{
+    background:none; border:none; font-size:11.5px; color:var(--text-faint);
+    cursor:pointer; padding:0; font-family:'Noto Sans JP', sans-serif; font-weight:600;
+  }
+  .entry-actions button:hover{ color:var(--danger); text-decoration:underline; }
+
+  .empty-state{
+    text-align:center; padding:52px 20px; color:var(--text-soft);
+    border:1px dashed var(--border-strong); border-radius:var(--radius); background:var(--surface);
+  }
+  .empty-state p{ font-size:13.5px; line-height:1.7; margin:0; }
+
+  /* Summary view */
+  .period-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .period-btn{
+    border:1px solid var(--border); background:var(--surface); border-radius:var(--radius-sm);
+    padding:7px 14px; font-size:13px; font-weight:700; color:var(--text-soft);
+    cursor:pointer; font-family:'Noto Sans JP', sans-serif;
+  }
+  .period-btn.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+  .custom-range{ display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; font-size:13px; color:var(--text-soft); }
+  .custom-range input[type=date]{
+    font-family:'Noto Sans JP', sans-serif; border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:6px 8px; font-size:13px; background:var(--surface); color:var(--text);
+  }
+  .period-label{ font-size:12.5px; color:var(--text-soft); margin-bottom:10px; font-weight:600; }
+  .toggle-row{
+    display:flex; align-items:center; gap:8px; margin-bottom:16px; font-size:12.5px; color:var(--text-soft); font-weight:600;
+  }
+  .toggle-row input{ width:15px; height:15px; accent-color:var(--accent); }
+
+  .summary-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    margin-bottom:10px; overflow:hidden;
+  }
+  @media (min-width:1000px){
+    .summary-cards-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
+    .summary-cards-grid .summary-card{ margin-bottom:0; }
+  }
+  .summary-card-head{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    background:color-mix(in srgb, var(--c) 6%, var(--surface));
+    border-bottom:1px solid var(--border);
+  }
+  .summary-card-head .tag{ background:var(--c); }
+  .summary-card-head h3{ margin:0; font-size:13.5px; font-weight:700; color:var(--text); }
+  .summary-count{ font-size:11.5px; color:var(--text-faint); margin-left:auto; font-weight:600; }
+  .summary-list{ list-style:none; margin:0; padding:4px 14px; }
+  .summary-list li{ font-size:13px; padding:7px 0; line-height:1.6; border-top:1px solid var(--border); }
+  .summary-list li:first-child{ border-top:none; }
+  .summary-list .status-mark{ color:var(--text-faint); font-weight:700; }
+  .summary-list .imp{ color:var(--accent); font-weight:600; }
+
+  .copy-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:18px; padding-top:14px; border-top:1px solid var(--border);
+    gap:10px; flex-wrap:wrap;
+  }
+  .copy-btn{
+    background:var(--text); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer;
+    font-family:'Noto Sans JP', sans-serif;
+  }
+  .copy-btn.copied{ background:var(--status-done); }
+  .total-count{ font-size:12px; color:var(--text-faint); }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,24,29,0.4);
+    display:flex; align-items:flex-end; justify-content:center;
+    z-index:50; opacity:0; pointer-events:none; transition:opacity .15s ease;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  @media (min-width:640px){ .overlay{ align-items:center; } }
+  .modal{
+    background:var(--surface); width:100%; max-width:480px;
+    border-radius:12px 12px 0 0; padding:20px 18px 24px;
+    max-height:88vh; overflow-y:auto;
+    border:1px solid var(--border); border-bottom:none;
+  }
+  @media (min-width:640px){ .modal{ border-radius:10px; border-bottom:1px solid var(--border);} }
+  .modal h2{ font-size:16px; font-weight:800; margin:0 0 14px; }
+  .field{ margin-bottom:13px; }
+  .field label{ display:block; font-size:12px; font-weight:700; color:var(--text-soft); margin-bottom:6px; }
+  .field input[type=text], .field input[type=date], .field textarea, .field select{
+    width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 11px;
+    font-family:'Noto Sans JP', sans-serif; font-size:14px; background:var(--surface); color:var(--text);
+  }
+  .field select{ height:38px; }
+  .field textarea{ resize:vertical; min-height:64px; line-height:1.6; }
+  .field input:focus, .field textarea:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .modal-actions{ display:flex; gap:8px; margin-top:18px; }
+  .btn-primary, .btn-ghost{
+    flex:1; border:none; border-radius:var(--radius-sm); padding:11px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:'Noto Sans JP', sans-serif;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:#2359CB; }
+  .btn-ghost{ background:var(--surface); color:var(--text-soft); border:1px solid var(--border); }
+  .btn-delete{
+    background:none; border:none; color:var(--danger); font-size:12.5px; cursor:pointer;
+    padding:0; margin-top:14px; font-family:'Noto Sans JP', sans-serif; font-weight:700;
+  }
+
+  ::selection{ background:var(--accent-soft); }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-block">
+      <h1>実績ログ</h1>
+      <p>日々のタスクと実績をシンプルに記録</p>
+    </div>
+    <div class="header-actions">
+      <button class="backup-btn" id="openBackupBtn">💾 バックアップ</button>
+      <button class="add-btn" id="openAddBtn">＋ 記録を追加</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="timeline">タイムライン</button>
+    <button class="tab" data-tab="summary">集計・振り返り</button>
+  </div>
+
+  <div id="timelineView">
+    <div class="timeline-layout">
+      <div class="timeline-list" id="timelineList"></div>
+      <div class="timeline-detail" id="timelineDetail"></div>
+    </div>
+  </div>
+  <div id="summaryView" style="display:none;"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">記録を追加</h2>
+    <div class="field">
+      <label>日付</label>
+      <input type="date" id="fDate">
+    </div>
+    <div class="field">
+      <label>カテゴリ</label>
+      <div class="chip-picker" id="catPicker"></div>
+    </div>
+    <div class="field">
+      <label>進捗状況</label>
+      <div class="chip-picker" id="statusPicker"></div>
+    </div>
+    <div class="field">
+      <label>やったこと・タスク名</label>
+      <input type="text" id="fTitle" placeholder="例）RMSで新商品を10点登録">
+    </div>
+    <div class="field">
+      <label>親タスク（任意・枝分かれタスクとして設定）</label>
+      <select id="fParent"></select>
+    </div>
+    <div class="field" style="display:flex; gap:10px;">
+      <div style="flex:1;">
+        <label>着手日（任意）</label>
+        <input type="date" id="fStartDate">
+      </div>
+      <div style="flex:1;">
+        <label>期日（任意）</label>
+        <input type="date" id="fDueDate">
+      </div>
+    </div>
+    <div class="field" style="display:flex; gap:10px;">
+      <div style="flex:1;">
+        <label>開催日 開始日（任意）</label>
+        <input type="date" id="fEventStart">
+      </div>
+      <div style="flex:1;">
+        <label>開催日 終了日（任意）</label>
+        <input type="date" id="fEventEnd">
+      </div>
+    </div>
+    <div class="field">
+      <label>詳細メモ（任意）</label>
+      <textarea id="fDetail" placeholder="背景や進め方など、あとで思い出せるように"></textarea>
+    </div>
+    <div class="field">
+      <label>成果・数字など（任意）</label>
+      <input type="text" id="fImpact" placeholder="例）CVR 1.2%→1.8%、登録工数を30%削減">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelBtn">キャンセル</button>
+      <button class="btn-primary" id="saveBtn">保存する</button>
+    </div>
+    <button class="btn-delete" id="deleteBtn" style="display:none;">この記録を削除する</button>
+  </div>
+</div>
+
+<div class="overlay" id="backupOverlay">
+  <div class="modal">
+    <h2>バックアップ</h2>
+    <p style="font-size:13px; color:var(--text-soft); line-height:1.7; margin:0 0 16px;">
+      記録はこの端末のブラウザ内だけに保存されています。ブラウザのキャッシュを消したり、別の端末・別のブラウザで開いたりすると記録が見られなくなるため、こまめにファイルとして保存しておくと安心です。
+    </p>
+    <div class="field">
+      <label>現在の記録件数</label>
+      <div id="backupCount" style="font-size:22px; font-weight:800;">0件</div>
+    </div>
+    <button class="btn-primary" id="exportBtn" style="width:100%; margin-bottom:10px;">📥 ファイルに保存する</button>
+    <label class="btn-ghost" id="importLabel" style="display:block; width:100%; text-align:center; cursor:pointer;">
+      📤 ファイルから復元する
+      <input type="file" id="importInput" accept="application/json" style="display:none;">
+    </label>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="backupCloseBtn" style="width:100%;">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast">保存しました</div>
+
+<script>
+const CATEGORIES = [
+  { id:'rakuten', label:'楽天',        color:'var(--rakuten)' },
+  { id:'amazon',  label:'Amazon',      color:'var(--amazon)' },
+  { id:'yahoo',   label:'Yahoo',       color:'var(--yahoo)' },
+  { id:'other',   label:'社内・その他', color:'var(--other)' },
+];
+const catById = id => CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length-1];
+
+const STATUSES = [
+  { id:'todo',  label:'未着手', color:'var(--status-todo)' },
+  { id:'doing', label:'進行中', color:'var(--status-doing)' },
+  { id:'hold',  label:'保留',   color:'var(--status-hold)' },
+  { id:'done',  label:'完了',   color:'var(--status-done)' },
+];
+const statusById = id => STATUSES.find(s => s.id === id) || STATUSES[3];
+
+const STORE_KEY = 'jisseki-log-entries-v1';
+let entries = [];
+try { entries = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){ entries = []; }
+let migrated = false;
+entries.forEach(e => { if (e.category === 'tiktok'){ e.category = 'other'; migrated = true; } });
+if (migrated) localStorage.setItem(STORE_KEY, JSON.stringify(entries));
+
+let currentTab = 'timeline';
+let timelineFilter = null; // category id or null
+let statusFilter = null; // status id or null
+let editingId = null;
+let selectedEntryId = null;
+let selectedCat = CATEGORIES[0].id;
+let selectedStatus = 'done';
+let summaryPeriod = 'thisHalf'; // thisHalf | lastHalf | custom
+let customFrom = null, customTo = null;
+let summaryDoneOnly = true;
+let collapsedTasks = new Set();
+
+const $ = sel => document.querySelector(sel);
+const pad = n => String(n).padStart(2,'0');
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+};
+
+function save(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(entries));
+  showSaveToast();
+}
+
+let toastTimer = null;
+function showSaveToast(msg){
+  const toast = $('#saveToast');
+  toast.textContent = msg || '保存しました';
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+}
+
+/* ---------- Half-year helpers (前期: 2〜7月 / 後期: 8〜1月) ---------- */
+function fiscalHalfRange(offset){
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth() + 1;
+  let half = (month >= 2 && month <= 7) ? 0 : 1; // 0=前期(2-7月), 1=後期(8-1月)
+  let py = (month === 1) ? year - 1 : year; // 後期をまたぐ1月は前年扱い
+
+  let totalHalfIndex = py * 2 + half + offset;
+  let targetPy = Math.floor(totalHalfIndex / 2);
+  let targetHalf = totalHalfIndex % 2;
+  if (targetHalf < 0) { targetHalf += 2; targetPy -= 1; }
+
+  let from, to, label;
+  if (targetHalf === 0) {
+    from = new Date(targetPy, 1, 1);   // 2月1日
+    to = new Date(targetPy, 6, 31);    // 7月31日
+    label = `${targetPy}年 前期（2〜7月）`;
+  } else {
+    from = new Date(targetPy, 7, 1);        // 8月1日
+    to = new Date(targetPy + 1, 0, 31);     // 翌年1月31日
+    label = `${targetPy}年 後期（8〜1月）`;
+  }
+  return { from, to, label };
+}
+
+function dateOnly(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function formatMD(dateStr){ const [,m,d] = dateStr.split('-'); return `${parseInt(m)}/${parseInt(d)}`; }
+function firstLine(text){ return text.split(/\r?\n/)[0]; }
+
+/* ---------- Rendering: Timeline ---------- */
+function renderTimeline(){
+  const view = $('#timelineList');
+  const passesFilter = e => (!timelineFilter || e.category === timelineFilter) && (!statusFilter || (e.status || 'done') === statusFilter);
+  const isTopLevel = e => !e.parentId || !entries.some(x => x.id === e.parentId);
+
+  const topLevel = entries
+    .filter(isTopLevel)
+    .filter(passesFilter)
+    .sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+
+  let html = '<div class="filters filter-row">';
+  html += `<span class="filter-label">カテゴリ</span>`;
+  html += `<button class="filter-chip ${!timelineFilter?'on':''}" data-filt="">すべて</button>`;
+  CATEGORIES.forEach(c => {
+    html += `<button class="filter-chip ${timelineFilter===c.id?'on':''}" style="--c:${c.color}" data-filt="${c.id}"><span class="dot"></span>${c.label}</button>`;
+  });
+  html += '</div>';
+  html += '<div class="filters filter-row">';
+  html += `<span class="filter-label">進捗</span>`;
+  html += `<button class="filter-chip ${!statusFilter?'on':''}" data-sfilt="">すべて</button>`;
+  STATUSES.forEach(s => {
+    html += `<button class="filter-chip ${statusFilter===s.id?'on':''}" style="--c:${s.color}" data-sfilt="${s.id}"><span class="dot"></span>${s.label}</button>`;
+  });
+  html += '</div>';
+
+  if (topLevel.length === 0){
+    html += `<div class="empty-state">
+      <p>まだ記録がありません。<br>「＋ 記録を追加」から、今日やったことを書いてみましょう。</p>
+    </div>`;
+    view.innerHTML = html;
+    bindTimelineEvents();
+    renderDetailPanel();
+    return;
+  }
+
+  let lastMonth = '';
+  topLevel.forEach(e => {
+    const ym = e.date.slice(0,7);
+    if (ym !== lastMonth){
+      const [y,m] = ym.split('-');
+      html += `<div class="month-heading">${y}年${parseInt(m)}月</div>`;
+      lastMonth = ym;
+    }
+    const children = entries.filter(c => c.parentId === e.id).sort((a,b) => a.date.localeCompare(b.date));
+    const isCollapsed = collapsedTasks.has(e.id);
+    html += `<div class="task-card">`;
+    html += buildEntryRow(e, { childCount: children.length, collapsed: isCollapsed });
+    if (children.length && !isCollapsed){
+      html += '<div class="children-wrap">';
+      children.forEach(c => { html += buildEntryRow(c, { isChild:true }); });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+
+  view.innerHTML = html;
+  bindTimelineEvents();
+  renderDetailPanel();
+}
+
+function buildEntryRow(e, opts){
+  opts = opts || {};
+  const cat = catById(e.category);
+  const st = statusById(e.status || 'done');
+  const isOverdue = e.dueDate && e.dueDate < todayStr() && st.id !== 'done';
+  const dateLabel = opts.isChild ? formatMD(e.date) : `${parseInt(e.date.split('-')[2])}日`;
+
+  let meta = '';
+  if (e.startDate) meta += `<span>着手 ${formatMD(e.startDate)}</span>`;
+  if (e.dueDate) meta += `<span class="${isOverdue?'overdue':''}">${isOverdue?'期日超過 ':'期日 '}${formatMD(e.dueDate)}</span>`;
+  if (e.eventStart || e.eventEnd) meta += `<span>開催 ${e.eventStart?formatMD(e.eventStart):'?'}〜${e.eventEnd?formatMD(e.eventEnd):'?'}</span>`;
+
+  return `<div class="entry-row ${selectedEntryId===e.id?'selected':''} ${opts.isChild?'is-child':''} ${opts.childCount?'has-children':''}" data-id="${e.id}">
+    ${opts.childCount ? `<button class="branch-toggle-btn ${opts.collapsed?'collapsed':''}" data-toggle="${e.id}" title="枝分かれタスクの表示切替">
+      <span class="arrow-v"></span>
+    </button>` : ''}
+    <div class="entry-row-top">
+      <span class="tag" style="background:${cat.color}">${cat.label}</span>
+      <span class="tag outline" style="--c:${st.color}">${st.label}</span>
+      <span class="entry-date">${dateLabel}</span>
+    </div>
+    <div class="entry-title">${escapeHtml(e.title)}</div>
+    ${meta ? `<div class="entry-meta">${meta}</div>` : ''}
+    ${e.detail ? `<div class="entry-detail">${escapeHtml(firstLine(e.detail))}</div>` : ''}
+    <div class="entry-actions">
+      <button data-edit="${e.id}">編集</button>
+      <button data-del="${e.id}">削除</button>
+    </div>
+  </div>`;
+}
+
+function deleteEntryById(id){
+  const hasChildren = entries.some(x => x.parentId === id);
+  const msg = hasChildren
+    ? 'このタスクには枝分かれタスクがあります。削除すると枝分かれタスクは独立したタスクになります。削除しますか？'
+    : 'この記録を削除しますか？';
+  if (!confirm(msg)) return false;
+  entries.forEach(x => { if (x.parentId === id) x.parentId = null; });
+  entries = entries.filter(x => x.id !== id);
+  if (selectedEntryId === id) selectedEntryId = null;
+  if (editingId === id) editingId = null;
+  save();
+  return true;
+}
+
+function bindTimelineEvents(){
+  document.querySelectorAll('[data-filt]').forEach(btn => {
+    btn.onclick = () => { timelineFilter = btn.dataset.filt || null; renderTimeline(); };
+  });
+  document.querySelectorAll('[data-sfilt]').forEach(btn => {
+    btn.onclick = () => { statusFilter = btn.dataset.sfilt || null; renderTimeline(); };
+  });
+  document.querySelectorAll('.entry-row[data-id]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      selectedEntryId = row.dataset.id;
+      document.querySelectorAll('.entry-row[data-id]').forEach(r => {
+        r.classList.toggle('selected', r.dataset.id === selectedEntryId);
+      });
+      renderDetailPanel();
+    });
+  });
+  document.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.toggle;
+      if (collapsedTasks.has(id)) collapsedTasks.delete(id); else collapsedTasks.add(id);
+      renderTimeline();
+    };
+  });
+  document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = (e) => { e.stopPropagation(); openModal(btn.dataset.edit); };
+  });
+  document.querySelectorAll('[data-del]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      if (deleteEntryById(btn.dataset.del)) renderTimeline();
+    };
+  });
+}
+
+/* ---------- Rendering: Detail panel ---------- */
+function renderDetailPanel(){
+  const panel = $('#timelineDetail');
+  if (!panel) return;
+  const e = entries.find(x => x.id === selectedEntryId);
+  if (!e){
+    panel.innerHTML = `<div class="timeline-detail-inner">
+      <div class="detail-empty">一覧からタスクを選ぶと、<br>ここに詳細が表示されます</div>
+    </div>`;
+    return;
+  }
+  const cat = catById(e.category);
+  const st = statusById(e.status || 'done');
+  const isOverdue = e.dueDate && e.dueDate < todayStr() && st.id !== 'done';
+  const parent = e.parentId ? entries.find(x => x.id === e.parentId) : null;
+  const children = entries.filter(x => x.parentId === e.id);
+  const isEventOverdue = e.eventEnd && e.eventEnd < todayStr() && st.id !== 'done';
+
+  panel.innerHTML = `<div class="timeline-detail-inner">
+    ${parent ? `<div class="detail-parent-link" data-goto="${parent.id}">⤴ 親タスク：${escapeHtml(parent.title)}</div>` : ''}
+    <div class="detail-header">
+      <span class="tag" style="background:${cat.color}">${cat.label}</span>
+      <span class="tag outline" style="--c:${st.color}">${st.label}</span>
+    </div>
+    <div class="detail-title">${escapeHtml(e.title)}</div>
+    <div class="detail-meta-list">
+      <div class="row"><span>記録日</span><span>${e.date}</span></div>
+      ${e.startDate ? `<div class="row"><span>着手日</span><span>${e.startDate}</span></div>` : ''}
+      ${e.dueDate ? `<div class="row"><span>期日</span><span class="${isOverdue?'overdue':''}">${e.dueDate}${isOverdue?'（期日超過）':''}</span></div>` : ''}
+      ${(e.eventStart || e.eventEnd) ? `<div class="row"><span>開催日</span><span class="${isEventOverdue?'overdue':''}">${e.eventStart||'?'} 〜 ${e.eventEnd||'?'}</span></div>` : ''}
+    </div>
+    ${e.detail ? `<div class="detail-detail-text">${escapeHtml(e.detail)}</div>` : ''}
+    ${e.impact ? `<div class="entry-impact">${escapeHtml(e.impact)}</div>` : ''}
+    ${children.length ? `<div class="detail-children">
+      <h4>枝分かれタスク（${children.length}件）</h4>
+      <ul>${children.map(c => `<li data-goto="${c.id}">${escapeHtml(c.title)}</li>`).join('')}</ul>
+    </div>` : ''}
+    <div class="detail-actions">
+      <button class="btn-ghost" data-edit="${e.id}">編集</button>
+      <button class="btn-danger" data-del="${e.id}">削除</button>
+    </div>
+  </div>`;
+
+  panel.querySelectorAll('[data-goto]').forEach(el => {
+    el.onclick = () => { selectedEntryId = el.dataset.goto; renderTimeline(); };
+  });
+  panel.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = () => openModal(btn.dataset.edit);
+  });
+  panel.querySelectorAll('[data-del]').forEach(btn => {
+    btn.onclick = () => {
+      if (deleteEntryById(btn.dataset.del)) renderTimeline();
+    };
+  });
+}
+
+
+function currentRange(){
+  if (summaryPeriod === 'thisHalf') return fiscalHalfRange(0);
+  if (summaryPeriod === 'lastHalf') return fiscalHalfRange(-1);
+  const from = customFrom ? new Date(customFrom) : new Date(0);
+  const to = customTo ? new Date(customTo) : new Date();
+  return { from, to, label: `${customFrom || '…'} 〜 ${customTo || '…'}` };
+}
+
+function renderSummary(){
+  const view = $('#summaryView');
+  const range = currentRange();
+  const fromStr = dateOnly(range.from), toStr = dateOnly(range.to);
+
+  const inRangeAll = entries.filter(e => e.date >= fromStr && e.date <= toStr)
+    .sort((a,b) => a.date.localeCompare(b.date));
+  const inRange = summaryDoneOnly ? inRangeAll.filter(e => (e.status || 'done') === 'done') : inRangeAll;
+
+  let html = `<div class="period-row">
+    <button class="period-btn ${summaryPeriod==='thisHalf'?'on':''}" data-p="thisHalf">今期</button>
+    <button class="period-btn ${summaryPeriod==='lastHalf'?'on':''}" data-p="lastHalf">前回</button>
+    <button class="period-btn ${summaryPeriod==='custom'?'on':''}" data-p="custom">カスタム</button>
+  </div>`;
+
+  if (summaryPeriod === 'custom'){
+    html += `<div class="custom-range">
+      <input type="date" id="customFromInput" value="${customFrom||''}">
+      <span>〜</span>
+      <input type="date" id="customToInput" value="${customTo||''}">
+    </div>`;
+  }
+
+  html += `<div class="period-label">対象期間：${range.label}${summaryPeriod!=='custom' ? `（${fromStr}〜${toStr}）` : ''}　${inRange.length}件</div>`;
+  html += `<label class="toggle-row"><input type="checkbox" id="doneOnlyToggle" ${summaryDoneOnly?'checked':''}> 完了したタスクのみを集計する</label>`;
+
+  if (inRange.length === 0){
+    html += `<div class="empty-state">
+      <p>この期間の記録がまだありません。<br>タイムラインから記録を追加してみましょう。</p>
+    </div>`;
+    view.innerHTML = html;
+    bindSummaryEvents();
+    return;
+  }
+
+  html += '<div class="summary-cards-grid">';
+  CATEGORIES.forEach(cat => {
+    const list = inRange.filter(e => e.category === cat.id);
+    if (list.length === 0) return;
+    html += `<div class="summary-card" style="--c:${cat.color}">
+      <div class="summary-card-head">
+        <span class="tag">${cat.label}</span>
+        <span class="summary-count">${list.length}件</span>
+      </div>
+      <ul class="summary-list">
+        ${list.map(e => {
+          const st = statusById(e.status || 'done');
+          const statusTag = st.id !== 'done' ? `<span class="status-mark">［${st.label}］</span>` : '';
+          return `<li>${statusTag}${escapeHtml(e.title)}${e.impact ? ` <span class="imp">— ${escapeHtml(e.impact)}</span>` : ''}</li>`;
+        }).join('')}
+      </ul>
+    </div>`;
+  });
+  html += '</div>';
+
+  html += `<div class="copy-bar">
+    <span class="total-count">評価シートに貼り付け用のテキストを作成できます</span>
+    <button class="copy-btn" id="copyBtn">📋 テキストをコピーする</button>
+  </div>`;
+
+  view.innerHTML = html;
+  bindSummaryEvents();
+}
+
+function bindSummaryEvents(){
+  document.querySelectorAll('[data-p]').forEach(btn => {
+    btn.onclick = () => { summaryPeriod = btn.dataset.p; renderSummary(); };
+  });
+  const cf = $('#customFromInput'), ct = $('#customToInput');
+  if (cf) cf.onchange = () => { customFrom = cf.value; renderSummary(); };
+  if (ct) ct.onchange = () => { customTo = ct.value; renderSummary(); };
+  const doneToggle = $('#doneOnlyToggle');
+  if (doneToggle) doneToggle.onchange = () => { summaryDoneOnly = doneToggle.checked; renderSummary(); };
+  const copyBtn = $('#copyBtn');
+  if (copyBtn) copyBtn.onclick = () => copySummaryText(copyBtn);
+}
+
+function copySummaryText(btn){
+  const range = currentRange();
+  const fromStr = dateOnly(range.from), toStr = dateOnly(range.to);
+  const inRangeAll = entries.filter(e => e.date >= fromStr && e.date <= toStr)
+    .sort((a,b) => a.date.localeCompare(b.date));
+  const inRange = summaryDoneOnly ? inRangeAll.filter(e => (e.status || 'done') === 'done') : inRangeAll;
+
+  let text = `【${range.label}実績】（${fromStr}〜${toStr}）\n\n`;
+  CATEGORIES.forEach(cat => {
+    const list = inRange.filter(e => e.category === cat.id);
+    if (list.length === 0) return;
+    text += `■ ${cat.label}（${list.length}件）\n`;
+    list.forEach(e => {
+      const st = statusById(e.status || 'done');
+      const statusTag = st.id !== 'done' ? `［${st.label}］` : '';
+      text += `・${statusTag}${e.title}`;
+      if (e.impact) text += `（成果：${e.impact}）`;
+      text += '\n';
+      if (e.detail) text += `　${e.detail.replace(/\n/g, '\n　')}\n`;
+    });
+    text += '\n';
+  });
+
+  navigator.clipboard.writeText(text.trim()).then(() => {
+    btn.textContent = '✓ コピーしました';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 テキストをコピーする'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    alert('コピーに失敗しました。手動で選択してコピーしてください。');
+  });
+}
+
+/* ---------- Modal ---------- */
+function renderCatPicker(){
+  const picker = $('#catPicker');
+  picker.innerHTML = CATEGORIES.map(c => `
+    <div class="chip ${selectedCat===c.id?'selected':''}" style="--c:${c.color}" data-cat="${c.id}">
+      <span class="dot"></span>${c.label}
+    </div>`).join('');
+  picker.querySelectorAll('[data-cat]').forEach(el => {
+    el.onclick = () => { selectedCat = el.dataset.cat; renderCatPicker(); };
+  });
+}
+
+function renderStatusPicker(){
+  const picker = $('#statusPicker');
+  picker.innerHTML = STATUSES.map(s => `
+    <div class="chip ${selectedStatus===s.id?'selected':''}" style="--c:${s.color}" data-status="${s.id}">
+      <span class="dot"></span>${s.label}
+    </div>`).join('');
+  picker.querySelectorAll('[data-status]').forEach(el => {
+    el.onclick = () => { selectedStatus = el.dataset.status; renderStatusPicker(); };
+  });
+}
+
+function openModal(id){
+  editingId = id || null;
+  const overlay = $('#overlay');
+  renderParentOptions();
+  if (editingId){
+    const e = entries.find(x => x.id === editingId);
+    $('#modalTitle').textContent = '記録を編集';
+    $('#fDate').value = e.date;
+    $('#fTitle').value = e.title;
+    $('#fDetail').value = e.detail || '';
+    $('#fImpact').value = e.impact || '';
+    $('#fStartDate').value = e.startDate || '';
+    $('#fDueDate').value = e.dueDate || '';
+    $('#fEventStart').value = e.eventStart || '';
+    $('#fEventEnd').value = e.eventEnd || '';
+    $('#fParent').value = e.parentId || '';
+    selectedCat = e.category;
+    selectedStatus = e.status || 'done';
+    $('#deleteBtn').style.display = 'block';
+  } else {
+    $('#modalTitle').textContent = '記録を追加';
+    $('#fDate').value = todayStr();
+    $('#fTitle').value = '';
+    $('#fDetail').value = '';
+    $('#fImpact').value = '';
+    $('#fStartDate').value = '';
+    $('#fDueDate').value = '';
+    $('#fEventStart').value = '';
+    $('#fEventEnd').value = '';
+    $('#fParent').value = '';
+    selectedCat = CATEGORIES[0].id;
+    selectedStatus = 'done';
+    $('#deleteBtn').style.display = 'none';
+  }
+  renderCatPicker();
+  renderStatusPicker();
+  overlay.classList.add('show');
+  setTimeout(() => $('#fTitle').focus(), 150);
+}
+
+function renderParentOptions(){
+  const sel = $('#fParent');
+  // 親タスクにできるのは「親を持たない（=最上位の）タスク」のみ。編集中の自分自身は除外。
+  const options = entries.filter(x => !x.parentId && x.id !== editingId);
+  sel.innerHTML = '<option value="">なし（独立したタスク）</option>' +
+    options.map(o => `<option value="${o.id}">${escapeHtml(o.title)}（${o.date}）</option>`).join('');
+}
+
+function closeModal(){
+  $('#overlay').classList.remove('show');
+  editingId = null;
+}
+
+function saveEntry(){
+  const title = $('#fTitle').value.trim();
+  if (!title){ alert('「やったこと・タスク名」を入力してください'); return; }
+  const date = $('#fDate').value || todayStr();
+  const detail = $('#fDetail').value.trim();
+  const impact = $('#fImpact').value.trim();
+  const startDate = $('#fStartDate').value || '';
+  const dueDate = $('#fDueDate').value || '';
+  const eventStart = $('#fEventStart').value || '';
+  const eventEnd = $('#fEventEnd').value || '';
+  const parentId = $('#fParent').value || null;
+  const status = selectedStatus;
+
+  if (editingId){
+    const e = entries.find(x => x.id === editingId);
+    Object.assign(e, { date, category: selectedCat, title, detail, impact, startDate, dueDate, eventStart, eventEnd, parentId, status });
+  } else {
+    entries.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      date, category: selectedCat, title, detail, impact, startDate, dueDate, eventStart, eventEnd, parentId, status
+    });
+  }
+  save();
+  closeModal();
+  renderTimeline();
+  renderSummary();
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ---------- Backup: export / import ---------- */
+function openBackupModal(){
+  $('#backupCount').textContent = `${entries.length}件`;
+  $('#backupOverlay').classList.add('show');
+}
+function closeBackupModal(){
+  $('#backupOverlay').classList.remove('show');
+}
+
+function exportData(){
+  const payload = {
+    app: 'jisseki-log',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    entries
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  a.href = url;
+  a.download = `jisseki-log-backup-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showSaveToast('バックアップファイルを保存しました');
+}
+
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try {
+      data = JSON.parse(reader.result);
+    } catch(e){
+      alert('ファイルを読み込めませんでした。正しいバックアップファイルか確認してください。');
+      return;
+    }
+    const imported = Array.isArray(data) ? data : data.entries;
+    if (!Array.isArray(imported)){
+      alert('このファイルには記録データが見つかりませんでした。');
+      return;
+    }
+    if (!confirm(`${imported.length}件の記録を読み込みます。同じ記録は上書きされます。よろしいですか？`)) return;
+
+    const map = {};
+    entries.forEach(e => { map[e.id] = e; });
+    imported.forEach(e => {
+      if (e && e.id && e.title) map[e.id] = e;
+    });
+    entries = Object.values(map);
+    save();
+    renderTimeline();
+    renderSummary();
+    closeBackupModal();
+    showSaveToast(`${imported.length}件を読み込みました`);
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- Init ---------- */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = () => {
+    currentTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+    $('#timelineView').style.display = currentTab === 'timeline' ? 'block' : 'none';
+    $('#summaryView').style.display = currentTab === 'summary' ? 'block' : 'none';
+    if (currentTab === 'summary') renderSummary();
+  };
+});
+
+$('#openAddBtn').onclick = () => openModal(null);
+$('#cancelBtn').onclick = closeModal;
+$('#saveBtn').onclick = saveEntry;
+$('#deleteBtn').onclick = () => {
+  const idToDelete = editingId;
+  if (deleteEntryById(idToDelete)){
+    closeModal();
+    renderTimeline();
+    renderSummary();
+  }
+};
+$('#overlay').onclick = (e) => { if (e.target.id === 'overlay') closeModal(); };
+
+$('#openBackupBtn').onclick = openBackupModal;
+$('#backupCloseBtn').onclick = closeBackupModal;
+$('#exportBtn').onclick = exportData;
+$('#importInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if (file) importData(file);
+  e.target.value = '';
+};
+$('#backupOverlay').onclick = (e) => { if (e.target.id === 'backupOverlay') closeBackupModal(); };
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape'){
+    if ($('#overlay').classList.contains('show')) closeModal();
+    if ($('#backupOverlay').classList.contains('show')) closeBackupModal();
+  }
+  if ((e.key === 'Enter') && (e.metaKey || e.ctrlKey) && $('#overlay').classList.contains('show')){
+    saveEntry();
+  }
+});
+
+renderTimeline();
+</script>
+</body>
+</html>

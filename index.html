@@ -545,7 +545,12 @@ function firstLine(text){ return text.split(/\r?\n/)[0]; }
 /* ---------- Rendering: Timeline ---------- */
 function renderTimeline(){
   const view = $('#timelineList');
-  const passesFilter = e => (!timelineFilter || e.category === timelineFilter) && (!statusFilter || (e.status || 'done') === statusFilter);
+  const passesFilter = e => {
+    const catOk = !timelineFilter || e.category === timelineFilter;
+    const st = e.status || 'done';
+    const statusOk = statusFilter ? (st === statusFilter) : (st !== 'done');
+    return catOk && statusOk;
+  };
   const isTopLevel = e => !e.parentId || !entries.some(x => x.id === e.parentId);
 
   const topLevel = entries
@@ -586,7 +591,7 @@ function renderTimeline(){
       html += `<div class="month-heading">${y}年${parseInt(m)}月</div>`;
       lastMonth = ym;
     }
-    const children = entries.filter(c => c.parentId === e.id).sort((a,b) => a.date.localeCompare(b.date));
+    const children = entries.filter(c => c.parentId === e.id).filter(passesFilter).sort((a,b) => a.date.localeCompare(b.date));
     const isCollapsed = collapsedTasks.has(e.id);
     html += `<div class="task-card">`;
     html += buildEntryRow(e, { childCount: children.length, collapsed: isCollapsed });
